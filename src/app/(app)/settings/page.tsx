@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, Trash2, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { Download, Trash2, RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSettings, useUpdateSettings } from "@/hooks/use-settings";
 import { THEMES, DATE_RANGES } from "@/lib/validations/settings";
@@ -22,6 +23,32 @@ const TIMEZONES = ["Asia/Kolkata", "UTC", "America/New_York", "Europe/London", "
 export default function SettingsPage() {
   const { data, isLoading } = useSettings();
   const update = useUpdateSettings();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function handleDeleteAccount() {
+    const confirmed = window.confirm(
+      "Are you absolutely sure you want to delete your account? This action is irreversible. All your transactions, journal entries, snapshots, settings, and login credentials will be permanently deleted."
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/account", {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to delete account");
+      }
+
+      toast.success("Account successfully deleted.");
+      window.location.href = "/login";
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred while deleting your account.");
+      setIsDeleting(false);
+    }
+  }
 
   if (isLoading || !data) {
     return (
@@ -121,12 +148,21 @@ export default function SettingsPage() {
         <CardContent>
           <Button
             variant="destructive"
-            onClick={() =>
-              toast.warning("Account deletion is disabled in this demo. Wire it to /api/account in production.")
-            }
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className="cursor-pointer"
           >
-            <Trash2 className="mr-2 size-4" />
-            Delete account
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Deleting account…
+              </>
+            ) : (
+              <>
+                <Trash2 className="mr-2 size-4" />
+                Delete account
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>

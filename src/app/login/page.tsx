@@ -1,23 +1,86 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { TrendingUp, Mail, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function LoginPage() {
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  async function signInWithGoogle() {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (activeTab === "signup" && password.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
+      return;
+    }
+
     setLoading(true);
     const supabase = createClient();
-    const siteUrl = window.location.origin;
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${siteUrl}/auth/callback` },
-    });
+
+    try {
+      if (activeTab === "signin") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          toast.error(error.message);
+        } else {
+          toast.success("Successfully logged in!");
+          router.push("/");
+          router.refresh();
+        }
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name || null,
+            },
+          },
+        });
+
+        if (error) {
+          toast.error(error.message);
+        } else {
+          const session = data?.session;
+          if (session) {
+            toast.success("Account created and logged in!");
+            router.push("/");
+            router.refresh();
+          } else {
+            toast.success(
+              "Account created! Please check your email to confirm registration."
+            );
+            setActiveTab("signin");
+          }
+        }
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -46,45 +109,153 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <Button
-              onClick={signInWithGoogle}
-              disabled={loading}
-              size="lg"
-              className="w-full gap-2 rounded-xl bg-white text-black hover:bg-white/90"
-            >
-              <GoogleIcon />
-              {loading ? "Redirecting…" : "Continue with Google"}
-            </Button>
+            {/* Custom Tab Switcher */}
+            <div className="flex w-full rounded-xl bg-white/5 p-1 border border-white/10">
+              <button
+                type="button"
+                onClick={() => setActiveTab("signin")}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all cursor-pointer ${
+                  activeTab === "signin"
+                    ? "bg-[#F5B82E] text-black shadow-sm"
+                    : "text-white/60 hover:text-white"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("signup")}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all cursor-pointer ${
+                  activeTab === "signup"
+                    ? "bg-[#F5B82E] text-black shadow-sm"
+                    : "text-white/60 hover:text-white"
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
+              <AnimatePresence mode="popLayout">
+                {activeTab === "signup" && (
+                  <motion.div
+                    key="name-field"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex flex-col gap-1.5 overflow-hidden"
+                  >
+                    <Label htmlFor="name" className="text-xs text-white/70">
+                      Full Name
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder="John Doe"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="pl-9 border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:border-[#F5B82E] focus-visible:ring-[#F5B82E]/20"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="email" className="text-xs text-white/70">
+                  Email Address
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-9 border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:border-[#F5B82E] focus-visible:ring-[#F5B82E]/20"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="password" className="text-xs text-white/70">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-9 pr-9 border-white/10 bg-white/5 text-white placeholder:text-white/30 focus-visible:border-[#F5B82E] focus-visible:ring-[#F5B82E]/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white cursor-pointer"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                size="lg"
+                className="mt-2 w-full gap-2 rounded-xl bg-[#F5B82E] text-black hover:bg-[#F5B82E]/90 disabled:bg-[#F5B82E]/50 cursor-pointer"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    {activeTab === "signin" ? "Signing In…" : "Creating Account…"}
+                  </>
+                ) : activeTab === "signin" ? (
+                  "Sign In"
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </form>
 
             <p className="text-center text-xs text-white/30">
-              By continuing you agree to track your own data securely.
+              {activeTab === "signin" ? (
+                <>
+                  Don't have an account?{" "}
+                  <button
+                    onClick={() => setActiveTab("signup")}
+                    className="text-[#F5B82E] hover:underline cursor-pointer"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    onClick={() => setActiveTab("signin")}
+                    className="text-[#F5B82E] hover:underline cursor-pointer"
+                  >
+                    Sign In
+                  </button>
+                </>
+              )}
             </p>
           </CardContent>
         </Card>
       </motion.div>
     </div>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg className="size-5" viewBox="0 0 24 24" aria-hidden>
-      <path
-        fill="#4285F4"
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84Z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38Z"
-      />
-    </svg>
   );
 }
