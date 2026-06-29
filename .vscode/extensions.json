@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "Continue.continue",
+    "GitHub.copilot",
+    "usernamehw.errorlens",
+    "yoavbls.pretty-ts-errors",
+    "Gruntfuggly.todo-tree",
+    "eamodio.gitlens",
+    "christian-kohler.path-intellisense",
+    "ms-azuretools.vscode-docker",
+    "rangav.vscode-thunder-client",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "PKief.material-icon-theme",
+    "formulahendry.auto-rename-tag",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}

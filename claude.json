@@ -1,0 +1,277 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/sakthi/projects/portfolio"
+      ]
+    },
+    "git": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "replace_with_your_github_token"
+      }
+    },
+    "postgresql": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://localhost/mydb"
+      ]
+    },
+    "sqlite": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-sqlite",
+        "--db-path",
+        "./local.db"
+      ]
+    },
+    "docker": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "docker-mcp"
+      ]
+    },
+    "kubernetes": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-kubernetes"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ]
+    },
+    "browser": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-browser"
+      ]
+    },
+    "slack": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-slack"
+      ],
+      "env": {
+        "SLACK_BOT_TOKEN": "replace_with_your_slack_bot_token"
+      }
+    },
+    "discord": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-discord"
+      ],
+      "env": {
+        "DISCORD_BOT_TOKEN": "replace_with_your_discord_bot_token"
+      }
+    },
+    "notion": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-notion"
+      ],
+      "env": {
+        "NOTION_API_KEY": "replace_with_your_notion_api_key"
+      }
+    },
+    "linear": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-linear"
+      ],
+      "env": {
+        "LINEAR_API_KEY": "replace_with_your_linear_api_key"
+      }
+    },
+    "jira": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-jira"
+      ],
+      "env": {
+        "JIRA_API_TOKEN": "replace_with_your_jira_api_token",
+        "JIRA_EMAIL": "replace_with_your_jira_email",
+        "JIRA_HOST": "replace_with_your_jira_host"
+      }
+    },
+    "google-drive": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-google-drive"
+      ]
+    },
+    "google-calendar": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-google-calendar"
+      ]
+    },
+    "google-maps": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-google-maps"
+      ],
+      "env": {
+        "GOOGLE_MAPS_API_KEY": "replace_with_your_google_maps_api_key"
+      }
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp"
+      ]
+    },
+    "terraform": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "terraform-mcp"
+      ]
+    },
+    "aws": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "aws-mcp"
+      ]
+    },
+    "cloudflare": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "cloudflare-mcp"
+      ],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "replace_with_your_cloudflare_api_token"
+      }
+    },
+    "redis": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "redis-mcp",
+        "redis://localhost:6379"
+      ]
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "supabase-mcp"
+      ],
+      "env": {
+        "SUPABASE_URL": "replace_with_your_supabase_url",
+        "SUPABASE_ANON_KEY": "replace_with_your_supabase_anon_key"
+      }
+    },
+    "prometheus": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "prometheus-mcp"
+      ]
+    },
+    "grafana": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "grafana-mcp"
+      ]
+    },
+    "loki": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "loki-mcp"
+      ]
+    },
+    "ssh": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "ssh-mcp"
+      ]
+    },
+    "linux": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "linux-mcp"
+      ]
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "replace_with_your_brave_api_key"
+      }
+    },
+    "qdrant": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "qdrant-mcp"
+      ]
+    }
+  }
+}

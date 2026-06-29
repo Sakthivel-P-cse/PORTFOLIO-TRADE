@@ -6,7 +6,6 @@ import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { StatStrip } from "@/components/dashboard/stat-strip";
-import { SkillsSection } from "@/components/dashboard/skills-section";
 
 export default function DashboardPage() {
   const metrics = useMetrics();
@@ -41,8 +40,6 @@ export default function DashboardPage() {
           </p>
         </div>
       </div>
-
-      <SkillsSection />
     </div>
   );
 }
