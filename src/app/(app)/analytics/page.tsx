@@ -5,7 +5,6 @@ import { PageHeader } from "@/components/aureum/page-header";
 import { StockCombobox } from "@/components/aureum/stock-combobox";
 import { StockCandlestickChart } from "@/components/aureum/stock-candlestick-chart";
 import { useJournalEntries } from "@/hooks/use-journal";
-import { useMetrics } from "@/hooks/use-portfolio";
 import { formatCurrency } from "@/lib/format";
 
 const periodDays: Record<string, number | null> = { "1D": 1, "1W": 7, "1M": 30, YTD: null };
@@ -14,7 +13,6 @@ export default function AnalyticsPage() {
   const [period, setPeriod] = useState("1W");
   const [symbols, setSymbols] = useState(["RELIANCE", "TCS", "HDFCBANK", "INFY"]);
   const journal = useJournalEntries();
-  const metrics = useMetrics();
   const filtered = useMemo(() => {
     const days = periodDays[period];
     if (!days) return journal.data ?? [];
@@ -35,8 +33,8 @@ export default function AnalyticsPage() {
   }, [journal.data]);
   const rows = grouped.length ? grouped : [["No trades", { pnl: 0, quantity: 0 }] as [string, { pnl: number; quantity: number }]];
   const selectSymbol = (panel: number, symbol: string) => setSymbols((current) => current.map((value, index) => index === panel ? symbol : value));
-  return <div className="aureum-page aureum-analytics-page"><PageHeader title="Analytics" description="Real-time valuation metrics and structural portfolio breakdown." actions={<div className="aureum-target"><div><span>All-time return</span><strong>{(metrics.data?.returnPct ?? 0).toFixed(1)}%</strong></div><div className="aureum-progress"><i style={{ width: `${Math.min(100, Math.max(0, metrics.data?.returnPct ?? 0))}%` }}/></div><div><small>0%</small><small>100%</small></div></div>}/>
-    {(journal.isError || metrics.isError) && <div className="aureum-error">Analytics data could not be loaded.</div>}
+  return <div className="aureum-page aureum-analytics-page"><PageHeader title="Analytics" description="Real-time valuation metrics and structural portfolio breakdown."/>
+    {journal.isError && <div className="aureum-error">Analytics data could not be loaded.</div>}
     <section className="aureum-valuation"><div className="aureum-section-bar"><h2>Asset Valuation</h2><div className="aureum-period-tabs">{Object.keys(periodDays).map((value) => <button key={value} className={period === value ? "active" : ""} onClick={() => setPeriod(value)}>{value}</button>)}</div></div><div className="aureum-market-grid">{symbols.map((symbol, index) => <div className="aureum-market-panel" key={`${index}-${symbol}`}><div className="aureum-stock-picker"><StockCombobox compact value={symbol} label={`Select stock for panel ${index + 1}`} onSelect={(stock) => selectSymbol(index, stock.ticker)}/></div><StockCandlestickChart trades={filtered.filter((entry) => entry.symbol === symbol)}/></div>)}</div></section>
     <section className="aureum-performers"><Performance title="Top Performers" rows={rows.slice(0, 5)}/><Performance title="Underperformers" rows={[...rows].reverse().slice(0, 5)}/></section>
   </div>;

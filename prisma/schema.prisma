@@ -215,6 +215,8 @@ model Settings {
   defaultRange    String   @default("3M") // 1W, 1M, 3M, 6M, 1Y, ALL
   autoRefreshSecs Int      @default(0) // 0 = off
   primaryMarket   Exchange @default(NSE)
+  goalMinPct      Float    @default(0)
+  goalTargetPct   Float    @default(100)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

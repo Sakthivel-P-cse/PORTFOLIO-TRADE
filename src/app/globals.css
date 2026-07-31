@@ -161,6 +161,8 @@
 .aureum-row-actions button { display: grid; width: 34px; height: 34px; place-items: center; border: 0; background: transparent; color: var(--a-muted); }
 .aureum-row-actions button:hover { color: var(--a-gold); }
 .aureum-target { width: 100%; padding-top: 27px; }
+.aureum-dashboard-header-actions { width: 100%; }
+.aureum-dashboard-header-actions > div:last-child { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 .aureum-target > div { display: flex; align-items: center; justify-content: space-between; }
 .aureum-target span, .aureum-target strong, .aureum-target small { font-family: var(--font-geist-mono), monospace; }
 .aureum-target span { color: var(--a-warm); font-size: 13px; }

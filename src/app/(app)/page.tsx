@@ -7,6 +7,7 @@ import { PortfolioCandlestickChart } from "@/components/aureum/portfolio-candles
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJournalEntries } from "@/hooks/use-journal";
 import { useMetrics } from "@/hooks/use-portfolio";
+import { useSettings } from "@/hooks/use-settings";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useUIStore } from "@/stores/ui-store";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -15,11 +16,16 @@ export default function DashboardPage() {
   const metrics = useMetrics();
   const transactions = useTransactions({ limit: 2000 });
   const journal = useJournalEntries();
+  const settings = useSettings();
   const openModal = useUIStore((state) => state.openModal);
   const trades = journal.data ?? [];
   const value = metrics.data;
-  return <div className="aureum-page"><PageHeader eyebrow="NSE / BSE Portfolio" title="Portfolio overview" description="Your Indian equity portfolio, realised performance, and latest trading activity." actions={<><button className="aureum-button" onClick={() => openModal({ type: "transaction", txnType: "DEPOSIT" })}>Add funds</button><button className="aureum-button primary" onClick={() => openModal({ type: "journal" })}>New trade</button></>}/>
-    {(metrics.isError || transactions.isError || journal.isError) && <div className="aureum-error">Some portfolio data could not be loaded.</div>}
+  const returnPct = value?.returnPct ?? 0;
+  const goalMin = settings.data?.goalMinPct ?? 0;
+  const goalTarget = settings.data?.goalTargetPct ?? 100;
+  const goalProgress = Math.min(100, Math.max(0, ((returnPct - goalMin) / (goalTarget - goalMin)) * 100));
+  return <div className="aureum-page"><PageHeader eyebrow="NSE / BSE Portfolio" title="Portfolio overview" description="Your Indian equity portfolio, realised performance, and latest trading activity." actions={<div className="aureum-dashboard-header-actions"><div className="aureum-target"><div><span>Return goal</span><strong>{returnPct.toFixed(1)}%</strong></div><div className="aureum-progress"><i style={{ width: `${goalProgress}%` }}/></div><div><small>{goalMin.toFixed(1)}%</small><small>{goalTarget.toFixed(1)}%</small></div></div><div><button className="aureum-button" onClick={() => openModal({ type: "transaction", txnType: "DEPOSIT" })}>Add funds</button><button className="aureum-button" onClick={() => openModal({ type: "transaction", txnType: "WITHDRAWAL" })}>Withdraw funds</button><button className="aureum-button primary" onClick={() => openModal({ type: "journal" })}>New trade</button></div></div>}/>
+    {(metrics.isError || transactions.isError || journal.isError || settings.isError) && <div className="aureum-error">Some portfolio data could not be loaded.</div>}
     <section className="aureum-metric-grid"><Metric label="Portfolio value" value={formatCurrency(value?.currentValue ?? 0)} trend={`${(value?.returnPct ?? 0).toFixed(2)}% all time`} icon={<WalletCards/>}/><Metric label="Net P&L" value={formatCurrency(value?.netPnl ?? 0)} trend={`${formatCurrency(value?.monthlyPnl ?? 0)} this month`} positive={(value?.netPnl ?? 0) >= 0}/><Metric label="Available cash" value={formatCurrency((value?.totalDeposits ?? 0) - (value?.totalWithdrawals ?? 0))} trend="Net capital allocation"/><Metric label="Win rate" value={`${(value?.winRate ?? 0).toFixed(1)}%`} trend={`${trades.filter((trade) => trade.outcome === "PROFIT").length} profitable trades`} positive/></section>
     <section className="aureum-dashboard-grid"><article className="aureum-panel wide"><PanelHead title="Portfolio equity" meta="Transaction-derived valuation"/><div className="aureum-dashboard-chart">{transactions.isLoading ? <Skeleton className="h-full"/> : <PortfolioCandlestickChart transactions={transactions.data ?? []}/>}</div></article><article className="aureum-panel"><PanelHead title="This month" meta="Realised trading P&L"/><div className="aureum-stat-list"><span><small>Monthly P&L</small><strong className={(value?.monthlyPnl ?? 0) >= 0 ? "positive" : "negative"}>{formatCurrency(value?.monthlyPnl ?? 0)}</strong></span><span><small>Profit factor</small><strong>{value?.profitFactor?.toFixed(2) ?? "—"}</strong></span><span><small>Max drawdown</small><strong>{(value?.maxDrawdownPct ?? 0).toFixed(2)}%</strong></span><span><small>Risk / reward</small><strong>{value?.riskRewardRatio?.toFixed(2) ?? "—"}</strong></span></div></article>
       <article className="aureum-panel wide"><PanelHead title="Recent activity" meta="Latest NSE/BSE positions"/>{journal.isLoading ? <Skeleton className="h-52"/> : <div>{trades.slice(0, 5).map((trade) => { const pnl = (trade.exitPrice - trade.entryPrice) * trade.quantity * (trade.side === "LONG" ? 1 : -1); return <div className="aureum-activity" key={trade.id}><span>{pnl >= 0 ? <ArrowUpRight/> : <ArrowDownRight/>}</span><span><strong>{trade.symbol} · {trade.exchange}</strong><small>{trade.side === "LONG" ? "Long" : "Short"} · {trade.quantity.toLocaleString("en-IN")} shares</small></span><time><strong className={pnl >= 0 ? "positive" : "negative"}>{formatCurrency(pnl)}</strong><small>{formatDate(trade.date)}</small></time></div>; })}{!trades.length && <div className="aureum-empty">No trades yet.</div>}</div>}</article>
