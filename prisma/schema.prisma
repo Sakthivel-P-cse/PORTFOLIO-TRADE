@@ -217,6 +217,7 @@ model Settings {
   primaryMarket   Exchange @default(NSE)
   goalMinPct      Float    @default(0)
   goalTargetPct   Float    @default(100)
+  goalAmount      Float    @default(1000000)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

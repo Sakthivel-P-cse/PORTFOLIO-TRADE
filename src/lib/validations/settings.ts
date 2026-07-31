@@ -12,6 +12,7 @@ export const settingsSchema = z.object({
   primaryMarket: z.enum(["NSE", "BSE"]).default("NSE"),
   goalMinPct: z.coerce.number().min(-1000).max(9999).default(0),
   goalTargetPct: z.coerce.number().min(-999).max(10000).default(100),
+  goalAmount: z.coerce.number().positive().max(1_000_000_000_000).default(1_000_000),
 });
 
 export type SettingsInput = z.infer<typeof settingsSchema>;

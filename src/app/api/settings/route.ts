@@ -25,12 +25,6 @@ export async function PATCH(request: Request) {
     if (!user) return unauthorized();
 
     const input = settingsSchema.partial().parse(await request.json());
-    const current = await prisma.settings.findUnique({ where: { userId: user.id } });
-    const goalMinPct = input.goalMinPct ?? current?.goalMinPct ?? 0;
-    const goalTargetPct = input.goalTargetPct ?? current?.goalTargetPct ?? 100;
-    if (goalTargetPct <= goalMinPct) {
-      return err("Goal target must be greater than the goal minimum", 422);
-    }
     const settings = await prisma.settings.upsert({
       where: { userId: user.id },
       update: input,
