@@ -39,6 +39,14 @@ export const journalEntrySchema = z.object({
   lessonLearned: z.string().trim().max(2000).optional().or(z.literal("")),
   screenshotUrl: z.string().url().optional().or(z.literal("")),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
+  symbol: z.string().trim().toUpperCase().min(1).max(32),
+  company: z.string().trim().min(1).max(160),
+  exchange: z.enum(["NSE", "BSE"]),
+  side: z.enum(["LONG", "SHORT"]),
+  entryPrice: z.coerce.number().nonnegative().max(1_000_000_000),
+  exitPrice: z.coerce.number().nonnegative().max(1_000_000_000),
+  quantity: z.coerce.number().int().nonnegative().max(1_000_000_000),
+  status: z.enum(["OPEN", "CLOSED"]).default("CLOSED"),
 });
 
 export type JournalEntryInput = z.infer<typeof journalEntrySchema>;

@@ -43,6 +43,14 @@ type JournalRow = {
   lessonLearned: string | null;
   screenshotUrl: string | null;
   tags: string[];
+  symbol: string;
+  company: string;
+  exchange: JournalEntryDTO["exchange"];
+  side: JournalEntryDTO["side"];
+  entryPrice: Decimalish;
+  exitPrice: Decimalish;
+  quantity: number;
+  status: JournalEntryDTO["status"];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -60,6 +68,14 @@ export function serializeJournalEntry(j: JournalRow): JournalEntryDTO {
     lessonLearned: j.lessonLearned,
     screenshotUrl: j.screenshotUrl,
     tags: j.tags,
+    symbol: j.symbol,
+    company: j.company,
+    exchange: j.exchange,
+    side: j.side,
+    entryPrice: toNum(j.entryPrice),
+    exitPrice: toNum(j.exitPrice),
+    quantity: j.quantity,
+    status: j.status,
     createdAt: j.createdAt.toISOString(),
     updatedAt: j.updatedAt.toISOString(),
   };

@@ -34,6 +34,21 @@ enum TradeOutcome {
   BREAKEVEN
 }
 
+enum Exchange {
+  NSE
+  BSE
+}
+
+enum TradeSide {
+  LONG
+  SHORT
+}
+
+enum TradeStatus {
+  OPEN
+  CLOSED
+}
+
 enum AuditAction {
   CREATE
   UPDATE
@@ -118,6 +133,14 @@ model JournalEntry {
   lessonLearned String?
   screenshotUrl String?
   tags          String[]     @default([])
+  symbol        String       @default("LEGACY")
+  company       String       @default("Legacy journal entry")
+  exchange      Exchange     @default(NSE)
+  side          TradeSide    @default(LONG)
+  entryPrice    Decimal      @default(0) @db.Decimal(18, 2)
+  exitPrice     Decimal      @default(0) @db.Decimal(18, 2)
+  quantity      Int          @default(0)
+  status        TradeStatus  @default(CLOSED)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -125,6 +148,7 @@ model JournalEntry {
 
   @@index([userId, date])
   @@index([userId, outcome])
+  @@index([userId, symbol])
 }
 
 // Pre-aggregated equity curve. One row per (user, granularity, date).
@@ -190,6 +214,7 @@ model Settings {
   timezone        String   @default("Asia/Kolkata")
   defaultRange    String   @default("3M") // 1W, 1M, 3M, 6M, 1Y, ALL
   autoRefreshSecs Int      @default(0) // 0 = off
+  primaryMarket   Exchange @default(NSE)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

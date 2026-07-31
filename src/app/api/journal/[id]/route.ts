@@ -43,6 +43,18 @@ export async function PATCH(request: Request, { params }: Params) {
             ? { screenshotUrl: input.screenshotUrl || null }
             : {}),
           ...(input.tags !== undefined ? { tags: input.tags } : {}),
+          ...(input.symbol !== undefined ? { symbol: input.symbol } : {}),
+          ...(input.company !== undefined ? { company: input.company } : {}),
+          ...(input.exchange !== undefined ? { exchange: input.exchange } : {}),
+          ...(input.side !== undefined ? { side: input.side } : {}),
+          ...(input.entryPrice !== undefined
+            ? { entryPrice: new Prisma.Decimal(input.entryPrice) }
+            : {}),
+          ...(input.exitPrice !== undefined
+            ? { exitPrice: new Prisma.Decimal(input.exitPrice) }
+            : {}),
+          ...(input.quantity !== undefined ? { quantity: input.quantity } : {}),
+          ...(input.status !== undefined ? { status: input.status } : {}),
         },
       });
       await recordAudit(tx, {

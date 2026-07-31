@@ -56,6 +56,14 @@ export async function POST(request: Request) {
           lessonLearned: input.lessonLearned || null,
           screenshotUrl: input.screenshotUrl || null,
           tags: input.tags ?? [],
+          symbol: input.symbol,
+          company: input.company,
+          exchange: input.exchange,
+          side: input.side,
+          entryPrice: new Prisma.Decimal(input.entryPrice),
+          exitPrice: new Prisma.Decimal(input.exitPrice),
+          quantity: input.quantity,
+          status: input.status,
         },
       });
       await recordAudit(tx, {

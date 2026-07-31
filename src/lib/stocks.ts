@@ -19,9 +19,3 @@ export const INDIAN_STOCKS: IndianStock[] = [
   { name: "Maruti Suzuki India Limited", ticker: "MARUTI", exchange: "NSE", bse: "532500" },
   { name: "Tata Motors Limited", ticker: "TATAMOTORS", exchange: "NSE", bse: "500570" },
 ];
-
-export function stockFromEntry(reason: string | null, tags: string[]) {
-  const tagged = tags.find((tag) => INDIAN_STOCKS.some((stock) => stock.ticker === tag));
-  return INDIAN_STOCKS.find((stock) => stock.ticker === tagged) ??
-    INDIAN_STOCKS.find((stock) => reason?.startsWith(`${stock.ticker} ·`));
-}

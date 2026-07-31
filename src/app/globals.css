@@ -173,6 +173,14 @@
 .aureum-period-tabs { display: flex; gap: 26px; }
 .aureum-valuation { margin-bottom: 80px; }
 .aureum-chart-grid { display: grid; grid-template-columns: 1fr 1fr; border-block: 1px solid var(--a-line); }
+.aureum-chart-grid.single { grid-template-columns: 1fr; }
+.aureum-market-grid { display: grid; height: 570px; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; overflow: hidden; border-block: 1px solid var(--a-line); }
+.aureum-market-panel { position: relative; min-width: 0; overflow: hidden; border-right: 1px solid var(--a-line); border-bottom: 1px solid var(--a-line); background: color-mix(in srgb, var(--a-surface) 45%, transparent); }
+.aureum-market-panel:nth-child(2n) { border-right: 0; }
+.aureum-market-panel:nth-last-child(-n + 2) { border-bottom: 0; }
+.aureum-stock-picker { position: absolute; z-index: 5; top: 18px; right: 76px; width: 170px; }
+.aureum-stock-chart { width: 100%; height: 100%; min-height: 180px; }
+.aureum-chart-empty { display: grid; width: 100%; height: 100%; place-items: center; color: var(--a-muted); font-family: var(--font-geist-mono), monospace; font-size: 11px; }
 .aureum-chart-panel { min-width: 0; height: 520px; overflow: hidden; border-right: 1px solid var(--a-line); padding: 18px; }
 .aureum-chart-panel:last-child { border: 0; }
 .aureum-chart-panel > strong { color: var(--a-gold); font-family: var(--font-geist-mono), monospace; font-size: 12px; }
@@ -209,6 +217,10 @@
 .aureum-settings-section { border-bottom: 1px solid var(--a-line); padding-bottom: 44px; }
 .aureum-settings-section > div:first-child { margin-bottom: 28px; }
 .aureum-settings-section p { margin-top: 7px; color: var(--a-muted); font-size: 12px; }
+.aureum-avatar-row { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.aureum-avatar-row > span { display: grid; width: 50px; height: 50px; place-items: center; border: 1px solid var(--a-line); color: var(--a-gold); font-family: var(--font-geist-mono), monospace; font-size: 13px; }
+.aureum-avatar-row strong, .aureum-avatar-row small { display: block; }
+.aureum-avatar-row small { margin-top: 4px; color: var(--a-muted); font-size: 11px; }
 .aureum-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 .aureum-form-grid label { display: grid; gap: 8px; color: var(--a-muted); font-family: var(--font-geist-mono), monospace; font-size: 11px; }
 .aureum-form-grid input, .aureum-form-grid select { width: 100%; border: 0; border-bottom: 1px solid var(--a-line); border-radius: 0; outline: 0; background: transparent; padding: 11px 0; color: var(--a-text); }
@@ -219,6 +231,25 @@
 .aureum-theme-options button.selected { border-color: var(--a-gold); color: var(--a-gold); }
 .aureum-save-bar { min-height: 24px; color: var(--a-gold); font-size: 12px; }
 .aureum-save-bar span { display: flex; gap: 6px; }
+.aureum-modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .78); backdrop-filter: blur(8px); }
+.aureum-modal { width: min(620px, 100%); max-height: calc(100dvh - 32px); overflow: auto; border: 1px solid var(--a-line); background: var(--a-surface); padding: 28px; }
+.aureum-modal-head { display: flex; justify-content: space-between; margin-bottom: 28px; }
+.aureum-modal-head h2 { font-size: 25px; }
+.aureum-icon-button { display: grid; width: 34px; height: 34px; place-items: center; border: 0; background: transparent; color: var(--a-muted); }
+.aureum-icon-button:hover { color: var(--a-gold); }
+.aureum-trade-form { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.aureum-trade-form > label { display: grid; gap: 8px; color: var(--a-muted); font-family: var(--font-geist-mono), monospace; font-size: 11px; }
+.aureum-trade-form input, .aureum-trade-form select, .aureum-trade-form textarea { width: 100%; border: 0; border-bottom: 1px solid var(--a-line); border-radius: 0; outline: 0; background: transparent; padding: 11px 0; color: var(--a-text); }
+.aureum-trade-form input:focus, .aureum-trade-form select:focus, .aureum-trade-form textarea:focus { border-color: var(--a-gold); }
+.aureum-trade-form .full { grid-column: 1 / -1; }
+.aureum-image-field { display: grid; gap: 8px; color: var(--a-muted); font-family: var(--font-geist-mono), monospace; font-size: 11px; }
+.aureum-image-drop { display: flex; min-height: 105px; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1px dashed var(--a-line); background: transparent; color: var(--a-muted); }
+.aureum-image-drop:hover { border-color: var(--a-gold); color: var(--a-gold); }
+.aureum-image-drop small { font-size: 9px; }
+.aureum-image-preview { display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 14px; }
+.aureum-image-preview img { width: 140px; height: 94px; border: 1px solid var(--a-line); object-fit: cover; }
+.aureum-image-preview > div, .aureum-form-actions { display: flex; gap: 8px; }
+.aureum-form-actions { justify-content: flex-end; margin-top: 10px; }
 .aureum-route-loading { min-height: 70dvh; display: grid; place-items: center; color: var(--a-muted); }
 .aureum-mobile-nav { display: none; }
 
@@ -256,6 +287,13 @@
   .aureum-toolbar { flex-wrap: wrap; }
   .aureum-search { min-width: 100%; }
   .aureum-chart-panel { height: 430px; padding: 8px; }
+  .aureum-market-grid { height: 800px; grid-template-columns: 1fr; grid-template-rows: repeat(4, 200px); }
+  .aureum-market-panel { border-right: 0; border-bottom: 1px solid var(--a-line) !important; }
+  .aureum-market-panel:last-child { border-bottom: 0 !important; }
+  .aureum-stock-picker { right: 20px; width: 150px; }
+  .aureum-trade-form { grid-template-columns: 1fr; }
+  .aureum-trade-form .full { grid-column: auto; }
+  .aureum-image-preview { grid-template-columns: 1fr; }
   .aureum-section-bar { align-items: flex-start; flex-direction: column; }
 }
 

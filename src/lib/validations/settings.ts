@@ -9,6 +9,7 @@ export const settingsSchema = z.object({
   timezone: z.string().trim().min(1).max(64).default("Asia/Kolkata"),
   defaultRange: z.enum(DATE_RANGES).default("3M"),
   autoRefreshSecs: z.coerce.number().int().min(0).max(3600).default(0),
+  primaryMarket: z.enum(["NSE", "BSE"]).default("NSE"),
 });
 
 export type SettingsInput = z.infer<typeof settingsSchema>;

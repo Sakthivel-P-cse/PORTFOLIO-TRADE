@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TransactionForm } from "@/components/transactions/transaction-form";
-import { JournalForm } from "@/components/journal/journal-form";
+import { TradeModal } from "@/components/aureum/trade-modal";
 import { ImportDialog } from "@/components/transactions/import-dialog";
 
 const TXN_TITLE = {
@@ -24,6 +24,10 @@ export function ModalManager() {
   const modal = useUIStore((s) => s.modal);
   const close = useUIStore((s) => s.closeModal);
   const open = modal !== null;
+
+  if (modal?.type === "journal") {
+    return <TradeModal open onClose={close} />;
+  }
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && close()}>
@@ -41,20 +45,6 @@ export function ModalManager() {
               </DialogDescription>
             </DialogHeader>
             <TransactionForm defaultType={modal.txnType} onDone={close} />
-          </>
-        )}
-
-        {modal?.type === "journal" && (
-          <>
-            <DialogHeader>
-              <DialogTitle>
-                {modal.editId ? "Edit Journal Entry" : "Add Journal Entry"}
-              </DialogTitle>
-              <DialogDescription>
-                Log your trade, mistakes, lessons, and tags.
-              </DialogDescription>
-            </DialogHeader>
-            <JournalForm onDone={close} />
           </>
         )}
 

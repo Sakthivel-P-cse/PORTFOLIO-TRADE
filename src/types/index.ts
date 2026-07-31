@@ -10,6 +10,9 @@ export type TradeType =
   | "OPTIONS"
   | "FUTURES";
 export type TradeOutcome = "PROFIT" | "LOSS" | "BREAKEVEN";
+export type Exchange = "NSE" | "BSE";
+export type TradeSide = "LONG" | "SHORT";
+export type TradeStatus = "OPEN" | "CLOSED";
 export type SnapshotGranularity = "DAY" | "WEEK" | "MONTH";
 export type AuditAction = "CREATE" | "UPDATE" | "DELETE" | "UNDO" | "REDO" | "IMPORT";
 
@@ -37,6 +40,14 @@ export interface JournalEntryDTO {
   lessonLearned: string | null;
   screenshotUrl: string | null;
   tags: string[];
+  symbol: string;
+  company: string;
+  exchange: Exchange;
+  side: TradeSide;
+  entryPrice: number;
+  exitPrice: number;
+  quantity: number;
+  status: TradeStatus;
   createdAt: string;
   updatedAt: string;
 }
