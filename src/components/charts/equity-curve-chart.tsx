@@ -647,7 +647,7 @@ export function EquityCurveChart({
           {showMarkers && (
             <svg className="pointer-events-none absolute inset-0 h-full w-full">
               {markers.map((m, i) => {
-                const hovered = hoverTimeRef.current === m.time;
+                const hovered = false;
                 return (
                   <circle
                     key={`${m.time}-${i}`}

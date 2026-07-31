@@ -1,180 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { Download, Trash2, RefreshCw, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Download, Loader2, Moon, Sun, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/aureum/page-header";
 import { useSettings, useUpdateSettings } from "@/hooks/use-settings";
-import { THEMES, DATE_RANGES } from "@/lib/validations/settings";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const TIMEZONES = ["Asia/Kolkata", "UTC", "America/New_York", "Europe/London", "Asia/Dubai", "Asia/Singapore"];
 
 export default function SettingsPage() {
-  const { data, isLoading } = useSettings();
+  const settings = useSettings();
   const update = useUpdateSettings();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  async function handleDeleteAccount() {
-    const confirmed = window.confirm(
-      "Are you absolutely sure you want to delete your account? This action is irreversible. All your transactions, journal entries, snapshots, settings, and login credentials will be permanently deleted."
-    );
-    if (!confirmed) return;
-
-    setIsDeleting(true);
-    try {
-      const res = await fetch("/api/account", {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to delete account");
-      }
-
-      toast.success("Account successfully deleted.");
-      window.location.href = "/login";
-    } catch (e: any) {
-      toast.error(e.message || "An error occurred while deleting your account.");
-      setIsDeleting(false);
-    }
-  }
-
-  if (isLoading || !data) {
-    return (
-      <div className="mx-auto max-w-3xl space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-40 rounded-2xl" />
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle>Preferences</CardTitle>
-          <CardDescription>Theme, currency, timezone and defaults.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-5 sm:grid-cols-2">
-          <Field label="Theme">
-            <Select value={data.theme} onValueChange={(v) => update.mutate({ theme: v as typeof data.theme })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {THEMES.map((t) => (
-                  <SelectItem key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field label="Currency">
-            <Input
-              defaultValue={data.currency}
-              onBlur={(e) => e.target.value !== data.currency && update.mutate({ currency: e.target.value })}
-            />
-          </Field>
-
-          <Field label="Timezone">
-            <Select value={data.timezone} onValueChange={(v) => update.mutate({ timezone: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TIMEZONES.map((tz) => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field label="Default date range">
-            <Select value={data.defaultRange} onValueChange={(v) => update.mutate({ defaultRange: v as typeof data.defaultRange })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {DATE_RANGES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field label="Auto-refresh (seconds, 0 = off)">
-            <Input
-              type="number"
-              min={0}
-              defaultValue={data.autoRefreshSecs}
-              onBlur={(e) => {
-                const v = Number(e.target.value);
-                if (v !== data.autoRefreshSecs) update.mutate({ autoRefreshSecs: v });
-              }}
-            />
-          </Field>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle>Data</CardTitle>
-          <CardDescription>Export, back up, or restore your data.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          <Button variant="outline" asChild>
-            <a href="/api/export" download>
-              <Download className="mr-2 size-4" />
-              Export transactions (CSV)
-            </a>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => toast.info("Use Import CSV from the dashboard to restore a backup.")}
-          >
-            <RefreshCw className="mr-2 size-4" />
-            Restore from CSV
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-2xl border-destructive/40">
-        <CardHeader>
-          <CardTitle className="text-destructive">Danger zone</CardTitle>
-          <CardDescription>Irreversible actions.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="destructive"
-            onClick={handleDeleteAccount}
-            disabled={isDeleting}
-            className="cursor-pointer"
-          >
-            {isDeleting ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Deleting account…
-              </>
-            ) : (
-              <>
-                <Trash2 className="mr-2 size-4" />
-                Delete account
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
-      {children}
-    </div>
-  );
+  const [deleting, setDeleting] = useState(false);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => { if (!settings.data) return; document.documentElement.dataset.theme = settings.data.theme === "LIGHT" ? "light" : "dark"; }, [settings.data]);
+  const save = async (input: Parameters<typeof update.mutateAsync>[0]) => { await update.mutateAsync(input); setSaved(true); window.setTimeout(() => setSaved(false), 1800); };
+  const deleteAccount = async () => {
+    if (!window.confirm("Permanently delete your account and all portfolio data?")) return;
+    setDeleting(true);
+    try { const response = await fetch("/api/account", { method: "DELETE" }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Unable to delete account"); window.location.assign("/login"); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Unable to delete account"); setDeleting(false); }
+  };
+  if (settings.isLoading) return <div className="aureum-page"><div className="aureum-route-loading">Loading settings…</div></div>;
+  if (settings.isError || !settings.data) return <div className="aureum-page"><div className="aureum-error" role="alert">Unable to load settings. {settings.error?.message}</div></div>;
+  const data = settings.data;
+  return <div className="aureum-page aureum-settings-page"><PageHeader eyebrow="Account / Preferences" title="Settings" description="Manage your trading environment, exports, and account."/>
+    <div className="aureum-settings-layout"><nav><a href="#preferences">Preferences</a><a href="#appearance">Appearance</a><a href="#data">Data management</a><a href="#danger">Account</a></nav><div className="aureum-settings-content">
+      <section id="preferences" className="aureum-settings-section"><div><h2>Preferences</h2><p>Indian market display and portfolio defaults.</p></div><div className="aureum-form-grid"><label>Currency<input defaultValue={data.currency} maxLength={8} onBlur={(event) => event.target.value !== data.currency && void save({ currency: event.target.value })}/></label><label>Time zone<select value={data.timezone} onChange={(event) => void save({ timezone: event.target.value })}><option value="Asia/Kolkata">India Standard Time (IST)</option><option value="UTC">UTC</option><option value="Asia/Singapore">Singapore</option></select></label><label>Default date range<select value={data.defaultRange} onChange={(event) => void save({ defaultRange: event.target.value as typeof data.defaultRange })}>{["1W", "1M", "3M", "6M", "1Y", "ALL"].map((range) => <option key={range}>{range}</option>)}</select></label><label>Auto-refresh seconds<input type="number" min={0} max={3600} defaultValue={data.autoRefreshSecs} onBlur={(event) => Number(event.target.value) !== data.autoRefreshSecs && void save({ autoRefreshSecs: Number(event.target.value) })}/></label></div></section>
+      <section id="appearance" className="aureum-settings-section"><div><h2>Appearance</h2><p>Choose how Aureum looks on this device.</p></div><div className="aureum-theme-options"><button className={data.theme === "DARK" ? "selected" : ""} onClick={() => void save({ theme: "DARK" })}><Moon/>Dark<span>Optimized for focus</span></button><button className={data.theme === "LIGHT" ? "selected" : ""} onClick={() => void save({ theme: "LIGHT" })}><Sun/>Light<span>Bright and crisp</span></button></div></section>
+      <section id="data" className="aureum-settings-section"><div><h2>Data management</h2><p>Download a portable CSV copy of your transaction history.</p></div><a className="aureum-button" href="/api/export" download><Download size={17}/> Export transactions</a></section>
+      <section id="danger" className="aureum-settings-section"><div><h2>Account</h2><p>Account deletion permanently removes authentication and all portfolio records.</p></div><button className="aureum-button danger" onClick={deleteAccount} disabled={deleting}>{deleting ? <Loader2 className="animate-spin" size={17}/> : <Trash2 size={17}/>} Delete account</button></section>
+      <div className="aureum-save-bar"><span>{saved && <><Check size={16}/> Changes saved</>}</span></div>
+    </div></div>
+  </div>;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   transactionSchema,
@@ -48,7 +48,7 @@ export function TransactionForm({ defaultType, existing, onDone }: Props) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(transactionSchema),
@@ -61,7 +61,7 @@ export function TransactionForm({ defaultType, existing, onDone }: Props) {
     },
   });
 
-  const type = watch("type");
+  const type = useWatch({ control, name: "type" });
 
   const onSubmit = handleSubmit(async (values) => {
     const input = values as TransactionInput;

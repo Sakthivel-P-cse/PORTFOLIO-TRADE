@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Upload, Loader2 } from "lucide-react";
 import {
@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toDateInputValue } from "@/lib/date";
+import { StockCombobox } from "@/components/aureum/stock-combobox";
+import { stockFromEntry, type IndianStock } from "@/lib/stocks";
 
 interface Props {
   existing?: JournalEntryDTO;
@@ -45,12 +47,13 @@ export function JournalForm({ existing, onDone }: Props) {
   const [tagInput, setTagInput] = useState("");
   const [screenshotUrl, setScreenshotUrl] = useState(existing?.screenshotUrl ?? "");
   const [uploading, setUploading] = useState(false);
+  const [stock, setStock] = useState<IndianStock | undefined>(() => stockFromEntry(existing?.reason ?? null, existing?.tags ?? []));
 
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(journalEntrySchema),
@@ -68,8 +71,8 @@ export function JournalForm({ existing, onDone }: Props) {
     },
   });
 
-  const tradeType = watch("tradeType");
-  const outcome = watch("outcome");
+  const tradeType = useWatch({ control, name: "tradeType" });
+  const outcome = useWatch({ control, name: "outcome" });
 
   function addTag(tag: string) {
     const t = tag.trim();
@@ -88,10 +91,19 @@ export function JournalForm({ existing, onDone }: Props) {
   }
 
   async function handleUpload(file: File) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Use a JPG, PNG, or WEBP image");
+      return;
+    }
+    if (file.size > 2_500_000) {
+      toast.error("Image must be smaller than 2.5 MB");
+      return;
+    }
     setUploading(true);
     try {
       const supabase = createClient();
-      const path = `screenshots/${crypto.randomUUID()}-${file.name}`;
+      const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `screenshots/${crypto.randomUUID()}.${extension}`;
       const { error } = await supabase.storage
         .from("journal")
         .upload(path, file, { upsert: false });
@@ -121,6 +133,13 @@ export function JournalForm({ existing, onDone }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <StockCombobox value={stock?.ticker} onSelect={(selected) => {
+        setStock(selected);
+        setValue("reason", `${selected.ticker} · ${selected.name} · ${selected.exchange}`);
+        const next = Array.from(new Set([...tags.filter((tag) => !stock || tag !== stock.ticker), selected.ticker, selected.exchange]));
+        setTags(next);
+        setValue("tags", next);
+      }}/>
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1.5">
           <Label>Date</Label>
@@ -241,7 +260,7 @@ export function JournalForm({ existing, onDone }: Props) {
             {uploading ? "Uploading…" : "Upload image"}
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
