@@ -18,7 +18,7 @@ export async function rebuildSnapshots(
 ): Promise<void> {
   const rows = await tx.transaction.findMany({
     where: { userId },
-    orderBy: { date: "asc" },
+    orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }],
   });
 
   const txns = rows.map(serializeTransaction);

@@ -31,15 +31,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { toDateInputValue } from "@/lib/date";
 
 interface Props {
   existing?: JournalEntryDTO;
   onDone: () => void;
-}
-
-function toDateInput(iso?: string) {
-  const d = iso ? new Date(iso) : new Date();
-  return d.toISOString().slice(0, 10);
 }
 
 export function JournalForm({ existing, onDone }: Props) {
@@ -59,7 +55,7 @@ export function JournalForm({ existing, onDone }: Props) {
   } = useForm({
     resolver: zodResolver(journalEntrySchema),
     defaultValues: {
-      date: toDateInput(existing?.date),
+      date: toDateInputValue(existing?.date),
       amount: existing?.amount ?? 0,
       tradeType: existing?.tradeType ?? "INTRADAY",
       outcome: existing?.outcome ?? "PROFIT",

@@ -11,6 +11,7 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { TransactionDTO } from "@/types";
+import { buildDailyPnlPoints } from "@/lib/calc/portfolio";
 import { ChartShell, type AxisRange } from "./chart-shell";
 import { toUtcTs, dedupeSortByTime, downloadCanvas } from "./chart-utils";
 
@@ -22,12 +23,10 @@ interface Props {
 const COLORS = {
   PROFIT: "#22c55e", // green up
   LOSS: "#ef4444", // red down
-  DEPOSIT: "#F5B82E", // yellow up (fund credit)
-  WITHDRAWAL: "#111111", // black down
+  NEUTRAL: "#6b7280",
 };
 
-// Chart 3: cash-flow bars. Each transaction becomes a signed bar; we lay them out
-// one type per timestamp by nudging duplicate-day entries so bars don't collide.
+// Chart 3: daily P&L bars. Every same-day profit/loss contributes to the net bar.
 export function CashflowChart({ transactions }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -35,26 +34,13 @@ export function CashflowChart({ transactions }: Props) {
   const [empty, setEmpty] = useState(transactions.length === 0);
 
   const bars = useMemo(() => {
-    const plTransactions = transactions.filter(t => t.type === "PROFIT" || t.type === "LOSS");
-    // Signed value: profits up, losses down.
-    const raw = plTransactions.map((t) => {
-      const up = t.type === "PROFIT";
-      return {
-        time: toUtcTs(t.date),
-        value: up ? t.amount : -t.amount,
-        color: COLORS[t.type],
-      };
-    });
-    // Histograms need unique ascending times; sum same-day same-direction is too lossy,
-    // so we keep the largest-magnitude bar per timestamp for a clean visual.
-    const byTime = new Map<number, { time: number; value: number; color: string }>();
-    for (const r of raw) {
-      const existing = byTime.get(r.time);
-      if (!existing || Math.abs(r.value) > Math.abs(existing.value)) {
-        byTime.set(r.time, r);
-      }
-    }
-    return dedupeSortByTime([...byTime.values()]);
+    return dedupeSortByTime(
+      buildDailyPnlPoints(transactions).map(({ day, value }) => ({
+        time: toUtcTs(`${day}T00:00:00.000Z`),
+        value,
+        color: value > 0 ? COLORS.PROFIT : value < 0 ? COLORS.LOSS : COLORS.NEUTRAL,
+      })),
+    );
   }, [transactions]);
 
   useEffect(() => {
@@ -72,7 +58,7 @@ export function CashflowChart({ transactions }: Props) {
         horzLines: { color: "rgba(255,255,255,0.05)" },
       },
       crosshair: { mode: CrosshairMode.Magnet },
-      rightPriceScale: { borderColor: "rgba(255,255,255,0.1)", autoScale: false },
+      rightPriceScale: { borderColor: "rgba(255,255,255,0.1)", autoScale: true },
       timeScale: { borderColor: "rgba(255,255,255,0.1)", timeVisible: true },
       handleScroll: true,
       handleScale: true,

@@ -2,6 +2,7 @@
 // All inputs are plain numbers (already converted from Decimal at the API boundary).
 
 import type {
+  DailyPortfolioCandle,
   PortfolioMetrics,
   SnapshotGranularity,
   TransactionDTO,
@@ -11,6 +12,11 @@ import type {
 export interface PointInTime {
   date: string; // ISO
   equity: number; // cumulative portfolio value at this point
+}
+
+export interface DailyPnlPoint {
+  day: string;
+  value: number;
 }
 
 interface Totals {
@@ -53,6 +59,18 @@ export function signedDelta(type: TransactionType, amount: number): number {
   }
 }
 
+function compareTransactions(a: TransactionDTO, b: TransactionDTO): number {
+  const byTransactionTime =
+    new Date(a.date).getTime() - new Date(b.date).getTime();
+  if (byTransactionTime !== 0) return byTransactionTime;
+
+  const byCreationTime =
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  if (byCreationTime !== 0) return byCreationTime;
+
+  return a.id.localeCompare(b.id);
+}
+
 /** Current Portfolio Value = Deposits + Profits − Losses − Withdrawals. */
 export function currentValue(t: Totals): number {
   return t.deposits + t.profit - t.loss - t.withdrawals;
@@ -71,14 +89,81 @@ export function returnPct(t: Totals): number {
 
 /** Build the ordered cumulative-equity curve from transactions. */
 export function buildEquityCurve(txns: TransactionDTO[]): PointInTime[] {
-  const sorted = [...txns].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-  );
+  const sorted = [...txns].sort(compareTransactions);
   let running = 0;
   return sorted.map((tx) => {
     running += signedDelta(tx.type, tx.amount);
     return { date: tx.date, equity: running };
   });
+}
+
+/**
+ * Build one hybrid OHLC candle per UTC calendar date. Every same-day
+ * transaction becomes an ordered colored segment in the chart renderer.
+ */
+export function buildDailyPortfolioCandles(
+  txns: TransactionDTO[],
+): DailyPortfolioCandle[] {
+  const sorted = [...txns].sort(compareTransactions);
+  const candles: DailyPortfolioCandle[] = [];
+  let runningValue = 0;
+  let current: DailyPortfolioCandle | null = null;
+
+  for (const tx of sorted) {
+    const day = tx.date.slice(0, 10);
+    if (!current || current.time !== day) {
+      current = {
+        time: day,
+        open: runningValue,
+        high: runningValue,
+        low: runningValue,
+        close: runningValue,
+        segments: [],
+        profit: 0,
+        loss: 0,
+        deposits: 0,
+        withdrawals: 0,
+      };
+      candles.push(current);
+    }
+
+    const from = runningValue;
+    runningValue += signedDelta(tx.type, tx.amount);
+    const to = runningValue;
+
+    current.segments.push({
+      transactionId: tx.id,
+      type: tx.type,
+      from,
+      to,
+      amount: tx.amount,
+    });
+    current.high = Math.max(current.high, from, to);
+    current.low = Math.min(current.low, from, to);
+    current.close = to;
+
+    if (tx.type === "PROFIT") current.profit += tx.amount;
+    else if (tx.type === "LOSS") current.loss += tx.amount;
+    else if (tx.type === "DEPOSIT") current.deposits += tx.amount;
+    else current.withdrawals += tx.amount;
+  }
+
+  return candles;
+}
+
+/** Aggregate every same-day profit/loss into one net daily value. */
+export function buildDailyPnlPoints(txns: TransactionDTO[]): DailyPnlPoint[] {
+  const totals = new Map<string, number>();
+  for (const tx of txns) {
+    if (tx.type !== "PROFIT" && tx.type !== "LOSS") continue;
+    const day = tx.date.slice(0, 10);
+    const value = tx.type === "PROFIT" ? tx.amount : -tx.amount;
+    totals.set(day, (totals.get(day) ?? 0) + value);
+  }
+
+  return [...totals]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([day, value]) => ({ day, value }));
 }
 
 /** Maximum drawdown % from an ordered equity curve. */
@@ -172,11 +257,11 @@ export function computeMetrics(
 /** Truncate a date to the start of its bucket for a given granularity. */
 export function bucketDate(date: Date, granularity: SnapshotGranularity): Date {
   const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
+  d.setUTCHours(0, 0, 0, 0);
   if (granularity === "WEEK") {
-    d.setDate(d.getDate() - d.getDay());
+    d.setUTCDate(d.getUTCDate() - d.getUTCDay());
   } else if (granularity === "MONTH") {
-    d.setDate(1);
+    d.setUTCDate(1);
   }
   return d;
 }
@@ -199,9 +284,7 @@ export function deriveSnapshots(
   txns: TransactionDTO[],
   granularity: SnapshotGranularity,
 ): SnapshotRow[] {
-  const sorted = [...txns].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-  );
+  const sorted = [...txns].sort(compareTransactions);
 
   let cumDeposits = 0;
   let cumWithdrawals = 0;

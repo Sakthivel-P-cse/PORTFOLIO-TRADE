@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
     const rows = await prisma.transaction.findMany({
       where,
-      orderBy: { date: "desc" },
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }, { id: "desc" }],
       take: Math.min(limit, 2000),
     });
 

@@ -51,6 +51,28 @@ export interface SnapshotDTO {
   netPnl: number;
 }
 
+export interface DailyCandleSegment {
+  transactionId: string;
+  type: TransactionType;
+  from: number;
+  to: number;
+  amount: number;
+}
+
+/** One daily portfolio candle composed from every transaction entered that day. */
+export interface DailyPortfolioCandle {
+  time: string; // YYYY-MM-DD
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  segments: DailyCandleSegment[];
+  profit: number;
+  loss: number;
+  deposits: number;
+  withdrawals: number;
+}
+
 // The full analytics payload powering the dashboard summary cards.
 export interface PortfolioMetrics {
   currentValue: number;

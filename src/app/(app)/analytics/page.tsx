@@ -15,6 +15,13 @@ const EquityCurveChart = dynamic(
   () => import("@/components/charts/equity-curve-chart").then((m) => m.EquityCurveChart),
   { ssr: false, loading: () => <Skeleton className="h-[760px] rounded-2xl" /> },
 );
+const DailyCandlestickChart = dynamic(
+  () =>
+    import("@/components/charts/daily-candlestick-chart").then(
+      (module) => module.DailyCandlestickChart,
+    ),
+  { ssr: false, loading: () => <Skeleton className="h-[580px] rounded-2xl" /> },
+);
 const GrowthChart = dynamic(
   () => import("@/components/charts/growth-chart").then((m) => m.GrowthChart),
   { ssr: false, loading: () => <Skeleton className="h-[440px] rounded-2xl" /> },
@@ -45,6 +52,11 @@ export default function AnalyticsPage() {
           />
         </div>
       </div>
+
+      <DailyCandlestickChart
+        transactions={txns}
+        loading={transactions.isLoading}
+      />
 
       <EquityCurveChart
         data={data}

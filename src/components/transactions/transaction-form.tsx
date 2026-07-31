@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toDateInputValue } from "@/lib/date";
 import {
   Select,
   SelectContent,
@@ -37,11 +38,6 @@ const TYPE_LABEL: Record<TransactionType, string> = {
   LOSS: "Loss",
 };
 
-function toDateInput(iso?: string) {
-  const d = iso ? new Date(iso) : new Date();
-  return d.toISOString().slice(0, 10);
-}
-
 export function TransactionForm({ defaultType, existing, onDone }: Props) {
   const create = useCreateTransaction();
   const update = useUpdateTransaction();
@@ -57,7 +53,7 @@ export function TransactionForm({ defaultType, existing, onDone }: Props) {
   } = useForm({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      date: toDateInput(existing?.date),
+      date: toDateInputValue(existing?.date),
       amount: existing?.amount,
       type: existing?.type ?? defaultType ?? "DEPOSIT",
       reason: existing?.reason ?? "",
