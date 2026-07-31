@@ -59,7 +59,9 @@
   --a-warm: #d9cab7;
   --a-muted: #8d9193;
   --a-gold: #f0c873;
+  --a-green: #64b58a;
   --a-red: #c88d78;
+  --a-purple: #af83d6;
 }
 
 :root[data-theme="light"] {
@@ -73,7 +75,9 @@
   --a-warm: #534a3d;
   --a-muted: #77766f;
   --a-gold: #a86e00;
+  --a-green: #23734d;
   --a-red: #a24c3a;
+  --a-purple: #7046a2;
 }
 
 .aureum-shell { min-height: 100dvh; background: var(--a-bg); color: var(--a-text); }

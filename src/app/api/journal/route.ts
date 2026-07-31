@@ -2,7 +2,9 @@ import { Prisma } from "@prisma/client";
 import { getUser } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { recordAudit } from "@/lib/db/audit";
+import { rebuildSnapshots } from "@/lib/db/snapshots";
 import { serializeJournalEntry } from "@/lib/db/serialize";
+import { journalPortfolioEffect } from "@/lib/journal-portfolio";
 import { journalEntrySchema } from "@/lib/validations/journal";
 import { ok, err, unauthorized, handleError } from "@/lib/api";
 
@@ -66,6 +68,26 @@ export async function POST(request: Request) {
           status: input.status,
         },
       });
+      const effect = journalPortfolioEffect({
+        entryPrice: row.entryPrice.toNumber(),
+        exitPrice: row.exitPrice.toNumber(),
+        quantity: row.quantity,
+        side: row.side,
+        status: row.status,
+      });
+      if (effect) {
+        await tx.transaction.create({
+          data: {
+            userId: user.id,
+            journalEntryId: row.id,
+            date: row.date,
+            amount: new Prisma.Decimal(effect.amount),
+            type: effect.type,
+            reason: row.reason,
+            notes: row.notes,
+          },
+        });
+      }
       await recordAudit(tx, {
         userId: user.id,
         action: "CREATE",
@@ -73,6 +95,7 @@ export async function POST(request: Request) {
         entityId: row.id,
         newData: serializeJournalEntry(row) as unknown as Prisma.InputJsonValue,
       });
+      await rebuildSnapshots(tx, user.id);
       return row;
     });
 
