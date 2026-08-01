@@ -103,6 +103,7 @@
 .aureum-header-actions { display: flex; min-width: 340px; justify-content: flex-end; gap: 10px; }
 .aureum-button { display: inline-flex; height: 42px; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--a-line); border-radius: 0; background: transparent; padding: 0 18px; color: var(--a-warm); font-family: var(--font-geist-mono), monospace; font-size: 12px; font-weight: 500; }
 .aureum-button:hover { border-color: var(--a-gold); color: var(--a-gold); }
+.aureum-button:disabled { cursor: not-allowed; opacity: .4; }
 .aureum-button.primary { border-color: var(--a-gold); background: var(--a-gold); color: #111; }
 .aureum-button.danger { color: var(--a-red); }
 .aureum-error { margin-bottom: 24px; border: 1px solid color-mix(in srgb, var(--a-red) 50%, transparent); padding: 14px 16px; color: var(--a-red); font-size: 13px; }

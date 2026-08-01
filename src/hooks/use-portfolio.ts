@@ -38,6 +38,7 @@ export function useUndoRedo() {
     onSuccess: (_data, action) => {
       toast.success(action === "undo" ? "Undone" : "Redone");
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["journal"] });
       qc.invalidateQueries({ queryKey: ["metrics"] });
       qc.invalidateQueries({ queryKey: ["snapshots"] });
       qc.invalidateQueries({ queryKey: ["undo-redo"] });

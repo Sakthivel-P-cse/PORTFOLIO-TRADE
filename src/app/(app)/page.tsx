@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDownRight, ArrowUpRight, CalendarDays, WalletCards } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, CalendarDays, Redo2, Undo2, WalletCards } from "lucide-react";
 import { PageHeader } from "@/components/aureum/page-header";
 import { PortfolioCandlestickChart } from "@/components/aureum/portfolio-candlestick-chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJournalEntries } from "@/hooks/use-journal";
-import { useMetrics } from "@/hooks/use-portfolio";
+import { useMetrics, useUndoRedo, useUndoRedoState } from "@/hooks/use-portfolio";
 import { useSettings } from "@/hooks/use-settings";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useUIStore } from "@/stores/ui-store";
@@ -17,6 +17,8 @@ export default function DashboardPage() {
   const transactions = useTransactions({ limit: 2000 });
   const journal = useJournalEntries();
   const settings = useSettings();
+  const undoRedoState = useUndoRedoState();
+  const undoRedo = useUndoRedo();
   const openModal = useUIStore((state) => state.openModal);
   const trades = journal.data ?? [];
   const value = metrics.data;
@@ -24,7 +26,7 @@ export default function DashboardPage() {
   const goalAmount = settings.data?.goalAmount ?? 1_000_000;
   const currentValue = value?.currentValue ?? 0;
   const goalProgress = Math.min(100, Math.max(0, (currentValue / goalAmount) * 100));
-  return <div className="aureum-page"><PageHeader eyebrow="NSE / BSE Portfolio" title="Portfolio overview" description="Your Indian equity portfolio, realised performance, and latest trading activity." actions={<div className="aureum-dashboard-header-actions"><div className="aureum-target"><div><span>Portfolio goal</span><strong>{goalProgress.toFixed(1)}%</strong></div><div className="aureum-progress"><i style={{ width: `${goalProgress}%` }}/></div><div><small>₹0</small><small>{formatCurrency(goalAmount)}</small></div></div><div><button className="aureum-button" onClick={() => openModal({ type: "transaction", txnType: "DEPOSIT" })}>Add funds</button><button className="aureum-button" onClick={() => openModal({ type: "transaction", txnType: "WITHDRAWAL" })}>Withdraw funds</button><button className="aureum-button primary" onClick={() => openModal({ type: "journal" })}>New trade</button></div></div>}/>
+  return <div className="aureum-page"><PageHeader eyebrow="NSE / BSE Portfolio" title="Portfolio overview" description="Your Indian equity portfolio, realised performance, and latest trading activity." actions={<div className="aureum-dashboard-header-actions"><div className="aureum-target"><div><span>Portfolio goal</span><strong>{goalProgress.toFixed(1)}%</strong></div><div className="aureum-progress"><i style={{ width: `${goalProgress}%` }}/></div><div><small>₹0</small><small>{formatCurrency(goalAmount)}</small></div></div><div><button className="aureum-button" disabled={!undoRedoState.data?.canUndo || undoRedo.isPending} onClick={() => undoRedo.mutate("undo")}><Undo2 size={15}/> Undo</button><button className="aureum-button" disabled={!undoRedoState.data?.canRedo || undoRedo.isPending} onClick={() => undoRedo.mutate("redo")}><Redo2 size={15}/> Redo</button><button className="aureum-button" onClick={() => openModal({ type: "transaction", txnType: "DEPOSIT" })}>Add funds</button><button className="aureum-button" onClick={() => openModal({ type: "transaction", txnType: "WITHDRAWAL" })}>Withdraw funds</button><button className="aureum-button primary" onClick={() => openModal({ type: "journal" })}>New trade</button></div></div>}/>
     {(metrics.isError || transactions.isError || journal.isError || settings.isError) && <div className="aureum-error">Some portfolio data could not be loaded.</div>}
     <section className="aureum-metric-grid"><Metric label="Portfolio value" value={formatCurrency(value?.currentValue ?? 0)} trend={`${(value?.returnPct ?? 0).toFixed(2)}% all time`} icon={<WalletCards/>}/><Metric label="Net P&L" value={formatCurrency(value?.netPnl ?? 0)} trend={`${formatCurrency(value?.monthlyPnl ?? 0)} this month`} positive={(value?.netPnl ?? 0) >= 0}/><Metric label="Available cash" value={formatCurrency((value?.totalDeposits ?? 0) - (value?.totalWithdrawals ?? 0))} trend="Net capital allocation"/><Metric label="Win rate" value={`${(value?.winRate ?? 0).toFixed(1)}%`} trend={`${trades.filter((trade) => trade.outcome === "PROFIT").length} profitable trades`} positive/></section>
     <section className="aureum-dashboard-grid"><article className="aureum-panel wide"><PanelHead title="Portfolio equity" meta="Transaction-derived valuation"/><div className="aureum-dashboard-chart">{transactions.isLoading ? <Skeleton className="h-full"/> : <PortfolioCandlestickChart transactions={transactions.data ?? []}/>}</div></article><article className="aureum-panel"><PanelHead title="This month" meta="Realised trading P&L"/><div className="aureum-stat-list"><span><small>Monthly P&L</small><strong className={(value?.monthlyPnl ?? 0) >= 0 ? "positive" : "negative"}>{formatCurrency(value?.monthlyPnl ?? 0)}</strong></span><span><small>Profit factor</small><strong>{value?.profitFactor?.toFixed(2) ?? "—"}</strong></span><span><small>Max drawdown</small><strong>{(value?.maxDrawdownPct ?? 0).toFixed(2)}%</strong></span><span><small>Risk / reward</small><strong>{value?.riskRewardRatio?.toFixed(2) ?? "—"}</strong></span></div></article>
